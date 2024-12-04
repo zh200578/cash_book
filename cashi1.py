@@ -1,15 +1,15 @@
-import tkinter
+import os
+import re
 import sqlite3
-import tkinter as tk
-from tkinter import messagebox, ttk
-from datetime import datetime
 import time
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter
+import tkinter as tk
+from datetime import datetime
+from tkinter import messagebox, ttk
 import requests
 from bs4 import BeautifulSoup
-import re
-import os
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 class SecondPa(tk.Toplevel):
@@ -76,33 +76,36 @@ class CashbookApp(tk.Tk):
         self.cur = self.conn.cursor()
         self.conn.commit()
 
+        # ...（前面的代码，包括导入和类定义等）
+
         # 标签控件
         self.label1 = tk.Label(self, height=2, text="入库日期:", font=("Arial", 12))
-        self.label1.grid(row=0, column=0, padx=10, pady=10)
+        self.label1.grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)  # sticky=tk.W 使标签左对齐
         self.label2 = tk.Label(self, height=2, text="入库数量:", font=("Arial", 12))
-        self.label2.grid(row=0, column=1, padx=10, pady=10)
+        self.label2.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
         self.label3 = tk.Label(self, height=2, text="出库数量:", font=("Arial", 12))
-        self.label3.grid(row=0, column=2, padx=10, pady=10)
+        self.label3.grid(row=0, column=2, padx=10, pady=10, sticky=tk.W)
 
-        # 日期输入文本框
-        self.text_1_date = tk.Entry(self, width=16, font=("", 18))  # 使用Entry代替Text，更适合输入日期
-        self.text_1_date.grid(row=1, column=0, padx=10, pady=5)
+        # 日期输入文本框（建议使用Entry）
+        self.text_1_date = tk.Text(self,height=2, width=5, font=("", 18))  # 改为Entry更适合输入日期
+        self.text_1_date.grid(row=1, column=0, padx=10, pady=5, sticky=tk.W + tk.E)  # sticky=tk.W+tk.E 使文本框水平扩展
 
-        # 入库数量文本框
-        self.text_1_ru = tk.Entry(self, width=16, font=("", 18))  # 使用Entry代替Text
-        self.text_1_ru.grid(row=1, column=1, padx=10, pady=5)
+        # 入库数量文本框（建议使用Entry）
+        self.text_1_ru = tk.Text(self,height=2, width=5, font=("", 18))
+        self.text_1_ru.grid(row=1, column=1, padx=10, pady=5, sticky=tk.W + tk.E)
 
-        # 出库数量文本框
-        self.text_1_chu = tk.Entry(self, width=18, font=("", 18))  # 使用Entry代替Text
-        self.text_1_chu.grid(row=1, column=2, padx=10, pady=5)
+        # 出库数量文本框（建议使用Entry）
+        self.text_1_chu = tk.Text(self, width=5,height=2, font=("", 18))
+        self.text_1_chu.grid(row=1, column=2, padx=10, pady=5, sticky=tk.W + tk.E)
 
         # 保存键按钮
-        b1 = tk.Button(self, text="保存至数据库", command=self.cunru, width=20, font=("", 12))
-        b1.grid(row=2, column=1, pady=15, padx=10)
+        b1 = tk.Button(self, text="保存至数据库", command=self.deposit, width=20, font=("", 12))
+        b1.grid(row=2, column=1, pady=20, padx=10)  # 增加垂直间距
 
         # 查询键文本框与按钮
         self.text_2 = tk.Text(self, height=8, width=60, wrap=tk.WORD)
-        self.text_2.grid(row=3, column=0, columnspan=3, pady=10, padx=10)
+        self.text_2.grid(row=3, column=0, columnspan=3, pady=10, padx=10,
+                         sticky=tk.W + tk.E + tk.N + tk.S)  # sticky参数使文本框填满可用空间
         b2 = tk.Button(self, text="查询数据", command=self.cha, width=20, font=("", 12))
         b2.grid(row=4, column=1, pady=10, padx=10)
 
@@ -115,10 +118,17 @@ class CashbookApp(tk.Tk):
         b4.grid(row=5, column=2, pady=10, padx=10)
 
         # 爬虫按钮
-        b5 = tk.Button(self, text="爬虫", command=self.Second, width=20, font=("", 12))
+        b5 = tk.Button(self, text="爬虫", command=self.second1, width=20, font=("", 12))
         b5.grid(row=6, column=1, pady=10, padx=10)
 
-    def Second(self):
+        # 设置行和列的权重（可选，用于调整窗体大小时控件的扩展行为）
+        for i in range(7):  # 假设有7行
+            self.rowconfigure(i, weight=1)
+        for i in range(3):  # 假设有3列（或更多，取决于实际布局）
+            self.columnconfigure(i, weight=1)
+
+        # ...（后面的代码，包括事件绑定等）
+    def second1(self):
         self.second = SecondPa()
         # messagebox.showinfo("欢迎!","本工具为VIP人员附赠的爬虫工具包，欢迎使用！")
 
@@ -129,7 +139,7 @@ class CashbookApp(tk.Tk):
         self.conn.commit()
         return fa_now
 
-    def cunru(self):
+    def deposit(self):
         # 输入数据处理
         text_store_ru = self.text_1_ru.get("1.0", tk.END).strip().splitlines()
         text_store_date = self.text_1_date.get("1.0", tk.END).strip().splitlines()
@@ -202,11 +212,11 @@ class CashbookApp(tk.Tk):
         canvas.draw()
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-    def on_paste(self, event):
+    def on_paste(self):
         messagebox.showinfo("提示", "粘贴操作已被禁用。")
         return "break"
 
-    def on_key_press(self, event):
+    def on_key_press(self):
         return "break"
 
 
